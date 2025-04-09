@@ -1,16 +1,22 @@
 const express = require('express');
+const path = require('path');
 const axios = require('axios');
 const cors = require('cors');
 
 const app = express();
 app.use(cors());
-app.use(express.static('frontend'));
 
+// Serve static files from frontend/public/
+app.use(express.static(path.join(__dirname, '../frontend/public')));
+
+// Serve assets folder
+app.use('/assets', express.static(path.join(__dirname, '../frontend/public/assets')));
+
+// Your weather API route
 app.get('/api/weather', async (req, res) => {
   const city = req.query.city || 'New York';
 
   try {
-    // Get coordinates from city name
     const geoRes = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${city}`);
     const place = geoRes.data.results?.[0];
 
@@ -18,7 +24,6 @@ app.get('/api/weather', async (req, res) => {
 
     const { latitude, longitude } = place;
 
-    // Fetch weather from Open-Meteo
     const weatherRes = await axios.get(`https://api.open-meteo.com/v1/forecast`, {
       params: {
         latitude,
@@ -40,5 +45,8 @@ app.get('/api/weather', async (req, res) => {
   }
 });
 
+// Start server
 const PORT = 3000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});
